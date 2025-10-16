@@ -3,14 +3,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 import math
+import os
 
-#header=none is there because this function took first line of data as header
-df = pd.read_csv('ES_data_7.dat', sep=r'\s+',header = None)
 
-x = df.iloc[:,0].to_numpy()
-y = df.iloc[:,1].to_numpy()
+df = pd.read_fwf('ES_data_7.dat', names=['x','y'])
 
-vec = np.zeros((len(x),6))
+T=200
+mu = 150
+lamb = 5*mu
+
+
+x = df['x']
+y = df['y']
+
+vec = np.zeros((len(x),7))
 
 #filling the array with abc and sigma abc
 for i in range(len(vec)):
@@ -25,16 +31,33 @@ def est(a,b,c, i):
     result = a*(x[i]**2 - b * math.cos(c*math.pi*x[i]))
     return result
 
-err = 0
+def err_vec(vector):
+    errors = []
+    #print(vector)
+    for v in vector:
+        print(v)
+        err = 0
 
-#error
-for i in range(len(vec)):
-    err += (y[i] - est(vec[i, 1],vec[i, 2],vec[i, 3], i))**2
 
-err = err / np.size(vec)
+        #error
+        for i in range(len(vec)):
+            err += (y[i] - est(v[0],v[1],v[2], i))**2
 
-print(err)
+        err = err / np.size(vec)
+        print(err)
+        errors.append(err)
+    return errors
 
+def make_Probs(vector, errors):
+    probs = []
+    sum_prob = np.sum(errors)
+    for p in errors:
+        probs.append(p/sum_prob)
+    vector[:,6] = probs
+    return vector
+        
+
+vector2 = make_Probs(vec, errors)
 
 plt.figure(figsize = (10,6))
 plt.scatter(x,y, s = 10) #s is markersize, I think default is 36
