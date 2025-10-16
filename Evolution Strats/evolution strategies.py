@@ -57,7 +57,8 @@ def make_Probs(vector, errors):
     return vector
         
 
-vector2 = make_Probs(vec, errors)
+vector2 = make_Probs(vec, err_vec(vec))
+print(max(vector2[:,6]))
 
 plt.figure(figsize = (10,6))
 plt.scatter(x,y, s = 10) #s is markersize, I think default is 36
