@@ -49,22 +49,35 @@ def err_vec(vector):
     return errors
 
 def make_Probs(vector, errors):
-    probs = []
-    sum_prob = np.sum(errors)
-    for p in errors:
-        probs.append(p/sum_prob)
+    # Avoid division by zero
+    fitness = 1 / (np.array(errors) + 1e-8)
+    probs = fitness / np.sum(fitness)
     vector[:,6] = probs
     return vector
-        
+
+def make_Pool(vector, probs, num):
+    pool = []
+    for _ in range(num):
+        choice = random.choices(vector, weights=probs, k=1)[0]
+        pool.append(choice)
+    return pool
+
+
 
 vector2 = make_Probs(vec, err_vec(vec))
-print(max(vector2[:,6]))
+probs = vector2[:,6]
+print(len(probs), len(vector2))
+pool = make_Pool(vector=vector2, probs=probs, num=len(x))
+print(pool)
+print(type(pool))
+print(type(pool[0]))
+print(type(pool[0][0]))
 
-plt.figure(figsize = (10,6))
+'''plt.figure(figsize = (10,6))
 plt.scatter(x,y, s = 10) #s is markersize, I think default is 36
 plt.xlabel('i')
 plt.ylabel('o(i)')
 plt.grid(True)
 plt.title('True values vs function')
-plt.show()
+plt.show()'''
 
