@@ -2,49 +2,52 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+import numpy.random as nprand
 import math
-import os
 
 
 df = pd.read_fwf('ES_data_7.dat', names=['x','y'])
 
-T=200
+Time=200
 mu = 150
-lamb = 5*mu
+lamb =mu
+n = 3
+tau1 = 1/math.sqrt(2*n)
+tau2 = 1/math.sqrt(2*math.sqrt(n))
 
 
 x = df['x']
 y = df['y']
 
-vec = np.zeros((len(x),7))
+initial_popualiton = np.zeros((mu,7))
 
 #filling the array with abc and sigma abc
-for i in range(len(vec)):
+for i in range(mu):
     for j in range(6):
         if j < 3:
-            vec[i,j] = random.uniform(-10,10)
+            initial_popualiton[i,j] = random.uniform(-10,10)
         else:
-            vec[i,j] = random.uniform(0,10)
+            initial_popualiton[i,j] = random.uniform(0,10)
 
 #The estimate calculated with the formula taken from the task
-def est(a,b,c, i):
-    result = a*(x[i]**2 - b * math.cos(c*math.pi*x[i]))
+def fun(a,b,c, i):
+    result = a*(i**2 - b * math.cos(c*math.pi*i))
     return result
 
 def err_vec(vector):
     errors = []
     #print(vector)
     for v in vector:
-        print(v)
+        #print(v)
         err = 0
 
 
         #error
-        for i in range(len(vec)):
-            err += (y[i] - est(v[0],v[1],v[2], i))**2
+        for i in range(len(x)):
+            err += (y[i] - fun(v[0],v[1],v[2], x[i]))**2
 
-        err = err / np.size(vec)
-        print(err)
+        err = err / mu
+        #print(err)
         errors.append(err)
     return errors
 
@@ -62,22 +65,46 @@ def make_Pool(vector, probs, num):
         pool.append(choice)
     return pool
 
+def make_New_Population(old_pop, size):
+    new_population = []
+    r1 = nprand.normal(0,1)
+    for i in range(size):
+        a = old_pop[i][0] + nprand.normal(0,old_pop[i][3])
+        b = old_pop[i][1] + nprand.normal(0,old_pop[i][4])
+        c = old_pop[i][2] + nprand.normal(0,old_pop[i][5])
+        
+        r2 = nprand.normal(0,1)
+        sigmas = old_pop[i][3:6] * np.exp(tau1*r1 + tau2*r2)
+        new_population.append(np.array([a,b,c,*sigmas,0]))
+    return new_population
+
+print(np.average(err_vec(initial_popualiton)))
+parents = []
+for _ in range(Time):
+    parents = make_Probs(initial_popualiton, err_vec(initial_popualiton))
+    pool = make_Pool(vector=parents, probs=parents[:,6], num=mu)
+
+    offspring = make_New_Population(pool, mu)
+    combined_population = np.vstack((parents, offspring))
+    errors = err_vec(combined_population)
+    best_idx = np.argsort(errors)[:mu]
+    parents = combined_population[best_idx]
 
 
-vector2 = make_Probs(vec, err_vec(vec))
-probs = vector2[:,6]
-print(len(probs), len(vector2))
-pool = make_Pool(vector=vector2, probs=probs, num=len(x))
-print(pool)
-print(type(pool))
-print(type(pool[0]))
-print(type(pool[0][0]))
+errors = err_vec(parents)
+best_idx = np.argsort(errors)
+parents = combined_population[best_idx]
+xs = np.linspace(-5, 5, 1000)
+ys = []
+for _x in xs:
+    ys.append(fun(parents[0][0],parents[0][1],parents[0][2], _x))
 
-'''plt.figure(figsize = (10,6))
+plt.figure(figsize = (10,6))
 plt.scatter(x,y, s = 10) #s is markersize, I think default is 36
+plt.scatter(xs,ys, s = 10, c='red') #s is markersize, I think default is 36
 plt.xlabel('i')
 plt.ylabel('o(i)')
 plt.grid(True)
 plt.title('True values vs function')
-plt.show()'''
+plt.show()
 
