@@ -78,27 +78,33 @@ def make_New_Population(old_pop, size):
         new_population.append(np.array([a,b,c,*sigmas,0]))
     return new_population
 
-print(np.average(err_vec(initial_popualiton)))
-parents = []
-for _ in range(Time):
-    parents = make_Probs(initial_popualiton, err_vec(initial_popualiton))
+
+current_population = initial_popualiton
+mean_error = np.average(err_vec(current_population))
+print(mean_error)
+id = 0
+while mean_error > 1:
+    parents = make_Probs(current_population, err_vec(current_population))
     pool = make_Pool(vector=parents, probs=parents[:,6], num=mu)
 
     offspring = make_New_Population(pool, mu)
     combined_population = np.vstack((parents, offspring))
     errors = err_vec(combined_population)
     best_idx = np.argsort(errors)[:mu]
-    parents = combined_population[best_idx]
+    current_population = combined_population[best_idx]
+    mean_error = np.average(err_vec(current_population))
+    id = id + 1
+    print(id)
 
 
-errors = err_vec(parents)
+errors = err_vec(current_population)
 best_idx = np.argsort(errors)
-parents = combined_population[best_idx]
+parents = current_population[best_idx]
 xs = np.linspace(-5, 5, 1000)
 ys = []
 for _x in xs:
-    ys.append(fun(parents[0][0],parents[0][1],parents[0][2], _x))
-
+    ys.append(fun(current_population[0][0],current_population[0][1],current_population[0][2], _x))
+print(np.average(err_vec(current_population)))
 plt.figure(figsize = (10,6))
 plt.scatter(x,y, s = 10) #s is markersize, I think default is 36
 plt.scatter(xs,ys, s = 10, c='red') #s is markersize, I think default is 36
