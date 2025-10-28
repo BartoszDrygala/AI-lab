@@ -95,12 +95,15 @@ while mean_error > 1:
     mean_error = np.average(err_vec(current_population))
     id = id + 1
     print(id)
+    if (id > 200):
+        print("too long")
+        break
 
 
 errors = err_vec(current_population)
 best_idx = np.argsort(errors)
 parents = current_population[best_idx]
-xs = np.linspace(-5, 5, 1000)
+xs = np.linspace(-5, 5, 150)
 ys = []
 for _x in xs:
     ys.append(fun(current_population[0][0],current_population[0][1],current_population[0][2], _x))
