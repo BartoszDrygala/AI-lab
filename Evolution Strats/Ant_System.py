@@ -2,16 +2,31 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-#cities 1
-x = [0, 3, 6, 7, 15, 12, 14, 9, 7, 0]
-y = [1, 4, 5, 3, 0, 4, 10, 6, 9, 10]
+k=20
+d=2
+ants_count = 1000
+
+def probPath(pathOfInterest, pathVector):
+    denom = 0
+    for i in range(0, len(pathVector)):
+        denom = denom + (pathVector[i]+k)**d
+
+    prob = (pathOfInterest + k)**d/denom
+    return prob
 
 
-dist_matrix = np.zeros((len(x),len(x)))
-for i in range(0,len(x)):
-    for j in range(0, len(x)):
-        dist_matrix[i][j] = np.sqrt((x[i]-x[j])**2+(y[i]-y[j])**2)
+ant_count_per_path = [0,0]
+distance = [1, 2]
 
-df = pd.DataFrame(np.array(dist_matrix))
 
-df.to_excel("twoaj stara.xlsx")
+def update_ant_count(ants_count_per_path, distance):
+    r = np.random.uniform(0,1)
+    if r > distance[1]/np.sum(distance):
+        ants_count_per_path[1] += 1
+    else:
+        ant_count_per_path[0] += 1
+
+for i in range(ants_count):
+    update_ant_count(ant_count_per_path,distance)
+
+print(ant_count_per_path)
