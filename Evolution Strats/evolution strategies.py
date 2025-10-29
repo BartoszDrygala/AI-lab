@@ -16,8 +16,10 @@ tau1 = 1/math.sqrt(2*n)
 tau2 = 1/math.sqrt(2*math.sqrt(n))
 
 
-x = df['x']
-y = df['y']
+'''x = df['x']
+y = df['y']'''
+x = np.linspace(-5,5,101)
+y = -5* np.log(np.sin(x**2))*np.cos(np.tan(x**2))
 
 initial_popualiton = np.zeros((mu,7))
 
@@ -31,7 +33,7 @@ for i in range(mu):
 
 #The estimate calculated with the formula taken from the task
 def fun(a,b,c, i):
-    result = a*(i**2 - b * math.cos(c*math.pi*i))
+    result = a* np.log(np.sin(i**b))*np.cos(np.tan(i**c))
     return result
 
 def err_vec(vector):
