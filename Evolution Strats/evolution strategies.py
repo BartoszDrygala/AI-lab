@@ -48,7 +48,7 @@ def err_vec(vector):
         for i in range(len(x)):
             err += (y[i] - fun(v[0],v[1],v[2], x[i]))**2
 
-        err = err / mu
+        err = err / len(x)
         #print(err)
         errors.append(err)
     return errors
@@ -63,19 +63,20 @@ def make_Probs(vector, errors):
 def make_Pool(vector, probs, num):
     pool = []
     for _ in range(num):
-        choice = random.choices(vector, weights=probs, k=1)[0]
+        choice = np.copy(random.choices(list(vector), weights=probs, k=1)[0])
         pool.append(choice)
     return pool
 
 def make_New_Population(old_pop, size):
     new_population = []
-    r1 = nprand.normal(0,1)
+
     for i in range(size):
+        r1 = nprand.normal(0, 1)
         a = old_pop[i][0] + nprand.normal(0,old_pop[i][3])
         b = old_pop[i][1] + nprand.normal(0,old_pop[i][4])
         c = old_pop[i][2] + nprand.normal(0,old_pop[i][5])
         
-        r2 = nprand.normal(0,1)
+        r2 = nprand.normal(0,1, 3)
         sigmas = old_pop[i][3:6] * np.exp(tau1*r1 + tau2*r2)
         new_population.append(np.array([a,b,c,*sigmas,0]))
     return new_population
@@ -105,11 +106,14 @@ while mean_error > 1:
 errors = err_vec(current_population)
 best_idx = np.argsort(errors)
 parents = current_population[best_idx]
+
 xs = np.linspace(-5, 5, 150)
 ys = []
 for _x in xs:
-    ys.append(fun(current_population[0][0],current_population[0][1],current_population[0][2], _x))
-print(np.average(err_vec(current_population)))
+    ys.append(fun(parents[0][0], parents[0][1], parents[0][2], _x))  # use best individual
+
+print(np.average(errors))
+
 plt.figure(figsize = (10,6))
 plt.scatter(x,y, s = 10) #s is markersize, I think default is 36
 plt.scatter(xs,ys, s = 10, c='red') #s is markersize, I think default is 36
