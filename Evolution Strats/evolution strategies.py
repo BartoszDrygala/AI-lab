@@ -4,10 +4,11 @@ import matplotlib.pyplot as plt
 import random
 import numpy.random as nprand
 import math
+from methods import err_vec,make_Probs, make_Pool, make_New_Population, fun
 
 # --- Reproducibility ---
-random.seed(4)
-np.random.seed(4)
+#random.seed(4)
+#np.random.seed(4)
 
 # --- Load data ---
 df = pd.read_fwf('ES_data_7.dat', names=['x', 'y'])
@@ -23,78 +24,49 @@ tau2 = 1 / math.sqrt(2 * math.sqrt(n))
 initial_population = np.zeros((mu, 7))
 for i in range(mu):
     initial_population[i, :3] = np.random.uniform(-10, 10, 3)
-    initial_population[i, 3:6] = np.random.uniform(0.1, 2, 3)
+    initial_population[i, 3:6] = np.random.uniform(0, 10, 3)
 
 # function from the task
-def fun(a, b, c, i):
-    return a * (i**2 - b * math.cos(c * math.pi * i))
 
-
-def err_vec(vectors):
-    errors = []
-    for v in vectors:
-        pred = [fun(v[0], v[1], v[2], xi) for xi in x]
-        mse = np.mean((y - pred) ** 2)
-        errors.append(mse)
-    return np.array(errors)
-
-#Probability assignment (roulette-wheel)
-def make_Probs(errors):
-    fitness = 1 / (errors + 1e-8)
-    return fitness / np.sum(fitness)
-
-# Parent selection
-def make_Pool(population, probs, num):
-    indices = np.random.choice(len(population), size=num, p=probs)
-    return population[indices].copy()
-
-# --- Mutation ---
-def make_New_Population(old_pop, size):
-    new_population = []
-    for i in range(size):
-        r1 = nprand.normal(0, 1)
-        r2 = nprand.normal(0, 1, 3)
-
-        # Adaptive step size — allows exploration
-        sigmas = np.maximum(
-            old_pop[i][3:6] * np.exp(tau1 * r1 + tau2 * r2),
-            1e-3  # prevents vanishing sigmas
-        )
-
-        sigmas = old_pop[i][3:6] * np.exp(tau1 * r1 + tau2 * r2)
-        a = old_pop[i][0] + nprand.normal(0, sigmas[0])
-        b = old_pop[i][1] + nprand.normal(0, sigmas[1])
-        c = old_pop[i][2] + nprand.normal(0, sigmas[2])
-
-        new_population.append(np.array([a, b, c, *sigmas, 0]))
-    return np.array(new_population)
 
 # --- Evolution loop ---
 current_population = initial_population.copy()
-errors = err_vec(current_population)
+errors = err_vec(current_population, x,y)
 prev_best = np.min(errors)
 diff = float('inf')
 generation = 0
 best_error = 1
-
-while (diff > 1e-5 or generation < 20)  and generation < 200:
-    errors = err_vec(current_population)
-    probs = make_Probs(errors)
-    pool = make_Pool(current_population, probs, mu)
-    offspring = make_New_Population(pool, mu)
-
+pros = []
+while abs(diff) > 0.00005 and generation < 200:
+    errors = err_vec(current_population,x,y)
+    probs_parent = make_Probs(errors)
+    best_idx_parent = np.argsort(errors)[0]
+    best_parent = current_population[best_idx_parent][:3]
+    print('biggest probability',probs_parent.max())
+    pool = make_Pool(current_population, probs_parent, mu)
+    current_population = make_New_Population(pool, mu, tau1, tau2)
+    errors_children = err_vec(current_population, x, y)
+    probs_child = make_Probs(errors_children)
+    best_idx_child = np.argsort(errors_children)[0]
+    best_child = current_population[best_idx_child][:3]
+    diff = np.linalg.norm(best_child-best_parent)
+    best_error = current_population[best_idx_child][6]
+    '''
     combined = np.vstack((current_population, offspring))
     combined_errors = err_vec(combined)
+    probs_combined = make_Probs(combined_errors)
+
+    
+    print('best combined: ', best_combined)
     best_idx = np.argsort(combined_errors)[:mu]
 
     current_population = combined[best_idx]
-    best_error = combined_errors[best_idx[0]]
+    best_combined = 
 
-    diff = abs(prev_best - best_error) / (abs(prev_best) + 1e-8)
-    prev_best = best_error
+    diff = best_combined - best_parent'''
     generation += 1
 
-    print(f"Gen {generation}: best_error={best_error:.6f}, diff={diff:.6f}")
+    print(f"Gen {generation}: best error={best_error}, diff={diff:.6f}")
 
 print(f"\nStopped after {generation} generations, best error = {best_error:.6f}")
 
