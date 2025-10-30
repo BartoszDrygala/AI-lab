@@ -1,6 +1,7 @@
 import numpy as np
 import math
 import numpy.random as nprand
+
 def fun(a, b, c, i):
     return a * (i**2 - b * math.cos(c * math.pi * i))
 

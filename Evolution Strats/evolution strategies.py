@@ -26,7 +26,6 @@ for i in range(mu):
     initial_population[i, :3] = np.random.uniform(-10, 10, 3)
     initial_population[i, 3:6] = np.random.uniform(0, 10, 3)
 
-# function from the task
 
 
 # --- Evolution loop ---
@@ -37,38 +36,49 @@ diff = float('inf')
 generation = 0
 best_error = 1
 pros = []
-while abs(diff) > 0.00005 and generation < 200:
+best_parent = []
+
+
+# main loop, change to difference between best and best new
+while abs(diff) > 10e-5 and generation < 200:
+
+    # evalue erros/fittnes of current population
     errors = err_vec(current_population,x,y)
+    current_population[:,6] = errors
+    # collect the highest fitness parent
+    best_parent = current_population[np.argmin(errors)]
+    # convert those error to probabilties for rulette wheel
     probs_parent = make_Probs(errors)
-    best_idx_parent = np.argsort(errors)[0]
-    best_parent = current_population[best_idx_parent][:3]
-    print('biggest probability',probs_parent.max())
+    #make a mating pool based on calcuated probabilites and creatre a new population
     pool = make_Pool(current_population, probs_parent, mu)
-    current_population = make_New_Population(pool, mu, tau1, tau2)
-    errors_children = err_vec(current_population, x, y)
-    probs_child = make_Probs(errors_children)
-    best_idx_child = np.argsort(errors_children)[0]
-    best_child = current_population[best_idx_child][:3]
-    diff = np.linalg.norm(best_child-best_parent)
-    best_error = current_population[best_idx_child][6]
-    '''
-    combined = np.vstack((current_population, offspring))
-    combined_errors = err_vec(combined)
-    probs_combined = make_Probs(combined_errors)
-
+    offspring = make_New_Population(pool, mu, tau1, tau2)
     
-    print('best combined: ', best_combined)
-    best_idx = np.argsort(combined_errors)[:mu]
+    # combine both population into single big one
+    combined_populations = np.vstack((current_population, offspring))
+    # create their errors
+    combined_errors = err_vec(combined_populations, x ,y)
+    combined_populations[:,6] = combined_errors
+    # sort new population by errors to select mu best
+    new_population = combined_populations[np.argsort(combined_errors)][:mu]
+    # get best individual and their error
+    best_original_combined = new_population[0]
+    
+    #check the second best if first is the same
+    if np.allclose(best_original_combined[:6], best_parent[:6], atol=1e-8):
+        best_original_combined = new_population[1]
 
-    current_population = combined[best_idx]
-    best_combined = 
-
-    diff = best_combined - best_parent'''
+    best_error = best_original_combined[6]
+    # calucalting differece between best fitness levels between both generation
+    diff = 1/best_original_combined[6] - 1/best_parent[6]
+    # finishing the loop
+    current_population = new_population
     generation += 1
 
-    print(f"Gen {generation}: best error={best_error}, diff={diff:.6f}")
 
+
+# evalue if succeded
 print(f"\nStopped after {generation} generations, best error = {best_error:.6f}")
+print(f'coefficients: {best_parent[0]} {best_parent[1]} {best_parent[2]}')
 
 # --- Plot best result ---
 best = current_population[0]
