@@ -107,36 +107,29 @@ for lol in range(10):
     prev_best_error = None
 
     for generation in range(200):
-        # --- Evaluate parents ---
         parent_errors = err_vec(current_population)
         probs = make_Probs(parent_errors)
 
-        # --- Get best parent before generating offspring ---
         best_parent_idx = np.argmin(parent_errors)
         best_parent = current_population[best_parent_idx, :3]
         best_parent_error = parent_errors[best_parent_idx]
 
-        # --- Selection and mutation ---
         pool = make_Pool(current_population, probs, lam)
         offspring = make_New_Population(pool, lam)
         offspring_errors = err_vec(offspring)
 
-        # --- (μ, λ) selection ---
         best_indices = np.argsort(offspring_errors)[:mu]
         current_population = offspring[best_indices]
 
-        # --- Get best offspring ---
         best_offspring_idx = np.argmin(offspring_errors)
         best_offspring = offspring[best_offspring_idx, :3]
         best_offspring_error = offspring_errors[best_offspring_idx]
 
-        # --- Compute difference between best parent and best offspring ---
         diff = np.abs(best_parent - best_offspring)
 
         print(f"Gen {generation}, best parent MSE = {best_parent_error:.5f}, "
               f"offspring MSE = {best_offspring_error:.5f}, diff = {diff}")
 
-        # --- Stopping condition ---
         if np.any(diff < eps):
             print(f"Stopped at generation {generation}: parameters stabilized (Δ < {eps})")
             break
