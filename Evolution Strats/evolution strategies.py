@@ -5,7 +5,7 @@ import random
 import numpy.random as nprand
 import math
 
-for lol in range(1):
+for lol in range(10):
     USE_FIXED_SEED = False
 
     if USE_FIXED_SEED:
@@ -23,6 +23,7 @@ for lol in range(1):
     # --- Parameters ---
     mu = 150
     n = 3
+    lam = 5 * mu
     tau1 = 1 / math.sqrt(2 * n)
     tau2 = 1 / math.sqrt(2 * math.sqrt(n))
 
@@ -101,29 +102,47 @@ for lol in range(1):
     generation = 0
     good_enough = False
 
-    while not good_enough and generation < 200:
-        generation += 1
-        #print(f"Gen {generation}", flush=True)  #: good_enough={good_enough}")
+    eps = 1e-5
+    prev_best_params = None
+    prev_best_error = None
 
-        errors = err_vec(current_population)
-        probs = make_Probs(errors)
-        pool = make_Pool(current_population, probs, mu)
-        offspring = make_New_Population(pool, mu)
+    for generation in range(200):
+        # --- Evaluate parents ---
+        parent_errors = err_vec(current_population)
+        probs = make_Probs(parent_errors)
+
+        # --- Get best parent before generating offspring ---
+        best_parent_idx = np.argmin(parent_errors)
+        best_parent = current_population[best_parent_idx, :3]
+        best_parent_error = parent_errors[best_parent_idx]
+
+        # --- Selection and mutation ---
+        pool = make_Pool(current_population, probs, lam)
+        offspring = make_New_Population(pool, lam)
         offspring_errors = err_vec(offspring)
 
-        best_parent_idx = np.argmin(errors)
+        # --- (μ, λ) selection ---
+        best_indices = np.argsort(offspring_errors)[:mu]
+        current_population = offspring[best_indices]
+
+        # --- Get best offspring ---
         best_offspring_idx = np.argmin(offspring_errors)
-        best_parent = current_population[best_parent_idx, :3]
         best_offspring = offspring[best_offspring_idx, :3]
+        best_offspring_error = offspring_errors[best_offspring_idx]
 
-        good_enough = is_good_enough(best_parent, best_offspring, eps=1e-3)
+        # --- Compute difference between best parent and best offspring ---
+        diff = np.abs(best_parent - best_offspring)
 
-        current_population = offspring
+        print(f"Gen {generation}, best parent MSE = {best_parent_error:.5f}, "
+              f"offspring MSE = {best_offspring_error:.5f}, diff = {diff}")
 
-    print(f"Number: {lol}")
+        # --- Stopping condition ---
+        if np.any(diff < eps):
+            print(f"Stopped at generation {generation}: parameters stabilized (Δ < {eps})")
+            break
+
     print(f"Using random seed: {seed}")
     print(f"Generation number: {generation}")
-    print(f"Diff: {np.abs(best_parent - best_offspring)}")
 
     # --- Plot best result ---
     best = current_population[0]
