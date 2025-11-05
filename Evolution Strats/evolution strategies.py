@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import random
 import numpy.random as nprand
 import math
-
+import time
 
 
 # --- Load data ---
@@ -18,7 +18,8 @@ lam = 5 * mu
 tau1 = 1 / math.sqrt(2 * n)
 tau2 = 1 / math.sqrt(2 * math.sqrt(n))
 
-
+times = []
+geners = []
 
 # function from the task
 def fun(a, b, c, i):
@@ -71,8 +72,10 @@ def make_New_Population(old_pop, size):
         new_population.append(np.array([a, b, c, *sigmas, 0]))
     return np.array(new_population)
 
-for lol in range(1):
-    USE_FIXED_SEED = True
+for lol in range(10):
+    print(f"Loop {lol + 1}: ")
+
+    USE_FIXED_SEED = False
     if USE_FIXED_SEED:
         seed = 1975
     else:
@@ -90,22 +93,14 @@ for lol in range(1):
     errors = err_vec(current_population)
     prev_best = np.min(errors)
 
-
-
-
-
-    def is_good_enough(parent, offspring, eps=1e-5):
-
-        result = np.abs(parent - offspring)
-        #print(parent, offspring)
-        return np.all(result < eps)
-
     generation = 0
     good_enough = False
 
     eps = 1e-5
     prev_best_params = None
     prev_best_error = None
+
+    start = time.time()
 
     for generation in range(200):
         parent_errors = err_vec(current_population)
@@ -128,16 +123,18 @@ for lol in range(1):
 
         diff = np.abs(best_parent - best_offspring)
 
-        print(f"Gen {generation}, best parent MSE = {best_parent_error:.5f}, "
-              f"offspring MSE = {best_offspring_error:.5f}, diff = {diff}")
+        #print(f"Gen {generation}, best parent MSE = {best_parent_error:.5f}, "
+        #      f"offspring MSE = {best_offspring_error:.5f}, diff = {diff}")
 
         if np.all(diff < eps):
             print(f"Stopped at generation {generation}: parameters stabilized (Δ < {eps})")
             break
 
     print(f"Using random seed: {seed}")
-    print(f"Generation number: {generation}")
-
+    print(f"Generation number: {generation}\n")
+    end = time.time()
+    times.append(end - start)
+    geners.append(generation)
     # --- Plot best result ---
     best = current_population[0]
     xs = np.linspace(-5, 5, 150)
@@ -153,3 +150,8 @@ for lol in range(1):
     plt.legend()
     plt.show()
 
+print(f"List of times: {times}")
+print(f"Mean time: {np.mean(times)}")
+
+print(f"List of generations: {geners}")
+print(f"Mean generation: {np.mean(geners)}")
