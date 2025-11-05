@@ -49,7 +49,7 @@ def make_New_Population(old_pop, size):
     r1 = tau1 * nprand.normal(0, 1)
     for i in range(size):
 
-        r2 = tau2 * nprand.normal(0, 1,3)
+        r2 = tau2 * nprand.normal(0, 1, 3)
         '''
         # Adaptive step size — allows exploration
         sigmas = np.maximum(
@@ -58,7 +58,7 @@ def make_New_Population(old_pop, size):
         )'''
 
         sigmas = old_pop[i][3:6] * np.exp(r1 + r2)
-        sigmas = np.clip(sigmas, 1e-5, 1000000000000000)
+        sigmas = np.clip(sigmas, 1e-5, 1)
 
 
         #if i < 3:  # print first 3 individuals only
@@ -71,7 +71,7 @@ def make_New_Population(old_pop, size):
         new_population.append(np.array([a, b, c, *sigmas, 0]))
     return np.array(new_population)
 
-for lol in range(5):
+for lol in range(1):
     USE_FIXED_SEED = True
     if USE_FIXED_SEED:
         seed = 1975
