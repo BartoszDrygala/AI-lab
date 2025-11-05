@@ -1,10 +1,12 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-'''
+
 #cities 1
 x = [0, 3, 6, 7, 15, 12, 14, 9, 7, 0]
-y = [1, 4, 5, 3, 0, 4, 10, 6, 9, 10]'''
+y = [1, 4, 5, 3, 0, 4, 10, 6, 9, 10]
+distnaces = pd.read_excel('Antek Mrowka.xlsx')
+print(distnaces)
 k=20
 d=2
 ants_count = 1000
